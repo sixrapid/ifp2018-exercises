@@ -21,7 +21,10 @@ import Control.Monad.Trans.State
 --   countRange 1 3 [1,2,3,4,5] ==> 3
 
 countRange :: Int -> Int -> [Int] -> Int
-countRange low high is = undefined
+countRange _ _ [] = 0
+countRange low high (i:is)
+  | i >= low && i <= high = 1 + countRange low high is
+  | otherwise             = countRange low high is
 
 ------------------------------------------------------------------------------
 -- Ex 2: Build a string that looks like an n*m chessboard:
@@ -39,7 +42,13 @@ countRange low high is = undefined
 -- in GHCi
 
 chess :: Int -> Int -> String
-chess = undefined
+chess 0 m = ""
+chess n m = 
+  if n `mod` 2 /= 0 then oddChessRow m ++ chess (n-1) m else evenChessRow m ++ chess (n-1) m where
+    oddChessRow 0 = "\n"
+    oddChessRow m = if m `mod` 2 == 0 then "." ++ oddChessRow (m-1) else "#" ++ oddChessRow (m-1)
+    evenChessRow 0 = "\n"
+    evenChessRow m = if m `mod` 2 == 0 then "#" ++ evenChessRow (m-1) else "." ++ evenChessRow (m-1)
 
 ------------------------------------------------------------------------------
 -- Ex 3: Implement the function palindromify that chops a character
@@ -53,7 +62,19 @@ chess = undefined
 --   palindromify "abracacabra" ==> "acaca"
 
 palindromify :: String -> String
-palindromify = undefined
+palindromify s = begin ++ mid ++ end where
+  l     = length s `div` 2
+  half1 = reverse $ take l s
+  half2 = drop (length s - l) s
+  end   = build half1 half2
+  begin = reverse end
+  mid   = if length s `mod` 2 == 0 then "" else [s !! (length s `div` 2)]
+
+build :: String -> String -> String
+build _ "" = ""
+build "" _ = ""
+build (a:as) (b:bs) =
+  if a == b then a : build as bs else ""
 
 ------------------------------------------------------------------------------
 -- Ex 4: Remove all repetitions of elements in a list. That is, if an
@@ -71,7 +92,11 @@ palindromify = undefined
 --   unrepeat [1,1,2,1,3,3,3] => [1,2,1,3]
 
 unrepeat :: Eq a => [a] -> [a]
-unrepeat = undefined
+unrepeat [] = []
+unrepeat [a] = [a]
+unrepeat (a:b:ns)
+  | a == b    = unrepeat (b:ns)
+  | otherwise = a : unrepeat (b:ns)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Given a list of Either String Int, sum all the integers.
@@ -82,7 +107,13 @@ unrepeat = undefined
 --   sumEithers [Left "fail", Right 1, Left "xxx", Right 2] ==> Just 3
 
 sumEithers :: [Either String Int] -> Maybe Int
-sumEithers = undefined
+sumEithers xs = if null l then Nothing else Just $ sum l where
+  l = toList xs
+
+toList :: [Either String Int] -> [Int]
+toList []               = []
+toList (Left _ : ns)    = toList ns
+toList (Right n : ns)   = n : toList ns
 
 ------------------------------------------------------------------------------
 -- Ex 6: Define the data structure Shape with values that can be
@@ -99,17 +130,18 @@ sumEithers = undefined
 --
 -- All dimensions should be Doubles.
 
-data Shape = Undefined
+data Shape = Circle Double | Rectangle Double Double
   deriving Show -- leave this line in place
 
 circle :: Double -> Shape
-circle = undefined
+circle = Circle
 
 rectangle :: Double -> Double -> Shape
-rectangle = undefined
+rectangle = Rectangle
 
 area :: Shape -> Double
-area = undefined
+area (Circle r)       = pi * r * r 
+area (Rectangle w h)  = w * h
 
 ------------------------------------------------------------------------------
 -- Ex 7: Here's a Card type for a deck of cards with just two suits
@@ -128,10 +160,18 @@ data Card = Heart Int | Spade Int | Joker
   deriving Show
 
 instance Eq Card where
-  a == b = undefined -- implement me!
+  Heart a ==  Heart b = a == b
+  Spade a ==  Spade b = a == b
+  Joker   ==  Joker   = True
+  _       ==  _       = False
 
 instance Ord Card where
-  -- implement me!
+  Heart a <=  Heart b = a <= b
+  Spade a <=  Spade b = a <= b
+  Spade _ <=  Heart _ = True
+  Heart _ <=  Spade _ = False
+  _       <=  Joker   = True
+  Joker   <=  _       = False
 
 ------------------------------------------------------------------------------
 -- Ex 8: Here's a type Twos for things that always come in pairs. It's
@@ -144,7 +184,8 @@ data Twos a = End a a | Continue a a (Twos a)
   deriving (Show, Eq)
 
 instance Functor Twos where
-  -- implement me!
+  fmap f (End a b)          = End (f a) (f b)
+  fmap f (Continue a b ts)  = Continue (f a) (f b) (fmap f ts)
 
 ------------------------------------------------------------------------------
 -- Ex 9: Use the state monad to update the state with the sum of the
@@ -156,7 +197,7 @@ instance Functor Twos where
 --   6
 
 step :: Int -> State Int ()
-step = undefined
+step i = undefined
 
 sumEvens :: [Int] -> State Int ()
 sumEvens is = forM_ is step
